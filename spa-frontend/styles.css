@@ -8,6 +8,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    background-color: #fff5f7; /* Fondo rosado claro */
+    color: #2d6a4f; /* Texto principal verde oscuro */
 }
 
 main {
@@ -23,6 +25,11 @@ h1, h2, h3,
     font-family: 'Playfair Display', serif;
     font-weight: 700;
     letter-spacing: 0.5px;
+    color: #d14d72; /* Rosado fuerte para títulos */
+}
+
+.home-title {
+    text-align: center;
 }
 
 /* ============ BARRA DE NAVEGACIÓN ============ */
@@ -30,7 +37,7 @@ h1, h2, h3,
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #333;
+    background-color: #2d6a4f; /* Verde oscuro */
     padding: 10px 165.9px;
 }
 
@@ -44,31 +51,31 @@ h1, h2, h3,
 }
 
 .navbar .nav-links a {
-    color: white;
+    color: #fff5f7; /* Rosado claro */
     text-decoration: none;
     padding: 8px 16px;
     transition: background-color 0.3s;
 }
 
 .navbar .nav-links a:hover {
-    background-color: #575757;
+    background-color: #40916c; /* Verde medio */
 }
 
 .navbar .nav-links a:first-child {
-    border: 1px solid #fff;
+    border: 1px solid #ffb3c6; /* Rosado claro */
 }
 
 .admin-nav-link {
     background-color: transparent;
     border-radius: 0;
-    color: white;
+    color: #fff5f7; /* Rosado claro */
     text-decoration: none;
     padding: 8px 16px;
     transition: background-color 0.3s;
 }
 
 .admin-nav-link:hover {
-    background-color: #575757;
+    background-color: #40916c; /* Verde medio */
 }
 
 /* ============ SECCIÓN HERO ============ */
@@ -106,7 +113,7 @@ h1, h2, h3,
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: white;
+    color: #fff5f7; /* Rosado claro */
     padding: 20px;
 }
 
@@ -120,13 +127,13 @@ h1, h2, h3,
     width: 100%;
     height: auto;
     border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 30px rgba(45, 106, 79, 0.3); /* Sombra verde */
 }
 
 .hero-text {
     flex: 1;
     max-width: 600px;
-    background: rgba(0,0,0,0.7);
+    background: rgba(209, 77, 114, 0.8); /* Rosado fuerte con transparencia */
     padding: 40px;
     border-radius: 15px;
     backdrop-filter: blur(5px);
@@ -135,7 +142,7 @@ h1, h2, h3,
 .hero-title {
     font-size: 2.5rem;
     margin-bottom: 20px;
-    color: #fff;
+    color: #fff5f7; /* Rosado claro */
 }
 
 .hero-description {
@@ -146,7 +153,7 @@ h1, h2, h3,
 
 /* ============ SECCIÓN DE SERVICIOS ============ */
 .services-container {
-    background-color: #f4f4f4;
+    background-color: #d8f3dc; /* Verde muy claro */
     border-radius: 8px;
     padding-top: 0;
     padding-bottom: 80px;
@@ -155,8 +162,8 @@ h1, h2, h3,
 .services-title {
     text-align: center;
     font-size: 28px;
-    color: #fff;
-    background-color: #333;
+    color: #fff5f7; /* Rosado claro */
+    background-color: #d14d72; /* Rosado fuerte */
     margin-top: 0;
     margin-bottom: 60px;
     padding: 40px 0;
@@ -170,17 +177,18 @@ h1, h2, h3,
 }
 
 .service-box {
-    background-color: #fff;
+    background-color: #fff5f7; /* Rosado claro */
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
     padding: 20px;
     text-align: center;
     transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .service-box:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 12px rgba(45, 106, 79, 0.2); /* Sombra verde más fuerte */
 }
 
 .service-box img {
@@ -192,13 +200,13 @@ h1, h2, h3,
 
 .service-box h3 {
     font-size: 1.5rem;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     margin-bottom: 10px;
 }
 
 .service-box p {
     font-size: 1rem;
-    color: #666;
+    color: #2d6a4f; /* Verde oscuro */
     margin-bottom: 15px;
 }
 
@@ -206,7 +214,7 @@ h1, h2, h3,
     list-style: none;
     padding: 0;
     font-size: 0.9rem;
-    color: #444;
+    color: #2d6a4f; /* Verde oscuro */
     text-align: left;
 }
 
@@ -225,30 +233,31 @@ h1, h2, h3,
 }
 
 .combo-box {
-    background-color: #fff;
+    background-color: #fff5f7; /* Rosado claro */
     width: 280px;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
     padding: 15px;
     text-align: center;
     transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .combo-box:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 12px rgba(45, 106, 79, 0.2); /* Sombra verde más fuerte */
 }
 
 .combo-box h3 {
     text-align: center;
     font-size: 1.4rem;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     margin-bottom: 8px;
 }
 
 .combo-box p {
     font-size: 1rem;
-    color: #666;
+    color: #2d6a4f; /* Verde oscuro */
     margin-bottom: 12px;
 }
 
@@ -256,14 +265,14 @@ h1, h2, h3,
     list-style: none;
     padding-left: 0;
     font-size: 1rem;
-    color: #444;
+    color: #2d6a4f; /* Verde oscuro */
     text-align: left;
 }
 
 .combo-box ul li {
     margin-bottom: 5px;
     padding: 5px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .combo-box ul li:last-child {
@@ -271,11 +280,12 @@ h1, h2, h3,
 }
 
 .grupal-notice {
-    background-color: #f8f9fa;
-    border-left: 4px solid #4a90e2;
+    background-color: #d8f3dc; /* Verde muy claro */
+    border-left: 4px solid #d14d72; /* Rosado fuerte */
     padding: 10px;
     margin: 10px 0;
     font-size: 14px;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 /* Botón para explorar servicios */
@@ -284,24 +294,25 @@ h1, h2, h3,
     max-width: 264px;
     margin: 60px auto 0;
     padding: 20px;
-    color: #000;
+    color: #2d6a4f; /* Verde oscuro */
     text-align: center;
-    border: 2px solid #000;
+    border: 2px solid #2d6a4f; /* Verde oscuro */
     text-decoration: none;
     font-size: 18px;
     transition: background-color 0.3s, opacity 0.3s;
+    background-color: #ffb3c6; /* Rosado claro */
 }
 
 .explore-button:hover {
-    background-color: #000;
-    color: white;
+    background-color: #2d6a4f; /* Verde oscuro */
+    color: #fff5f7; /* Rosado claro */
     opacity: 0.8;
 }
 
 /* ============ SECCIÓN DE TURNOS ============ */
 .turnos-container {
-    background-color: #000;
-    color: white;
+    background-color: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -319,7 +330,7 @@ h1, h2, h3,
 .turnos-divider {
     width: 2px;
     height: 400px;
-    background-color: #fff;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .turnos-left {
@@ -356,17 +367,18 @@ h1, h2, h3,
 .reserve-button {
     display: inline-block;
     padding: 12px 24px;
-    color: white;
+    color: #d14d72; /* Rosado fuerte */
     text-align: center;
-    border: 2px solid #fff;
+    border: 2px solid #fff5f7; /* Rosado claro */
     text-decoration: none;
     font-size: 18px;
     transition: background-color 0.3s, opacity 0.3s;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .reserve-button:hover {
-    background-color: #fff;
-    color: #000;
+    background-color: #2d6a4f; /* Verde oscuro */
+    color: #fff5f7; /* Rosado claro */
     opacity: 0.8;
 }
 
@@ -383,7 +395,7 @@ h1, h2, h3,
     text-align: center;
     margin: 40px 0;
     font-size: 50px;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     font-weight: 800;
 }
 
@@ -392,9 +404,10 @@ h1, h2, h3,
     max-width: 800px;
     margin: 1 auto;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #fff5f7; /* Rosado claro */
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .turnos-form-group {
@@ -405,14 +418,16 @@ h1, h2, h3,
     display: block;
     font-weight: bold;
     margin-bottom: 5px;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 .turnos-form-group input[type="date"],
 .turnos-form-group input[type="time"] {
     width: 50%;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 5px;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 #turnos-servicios-list {
@@ -425,7 +440,7 @@ h1, h2, h3,
 #turnos-servicios-list h3 {
     width: 100%;
     font-size: 1.5rem;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     margin-bottom: 10px;
 }
 
@@ -438,9 +453,9 @@ h1, h2, h3,
     display: inline-block;
     padding: 10px 20px;
     font-size: 1rem;
-    color: #333;
-    background-color: #f0f0f0;
-    border: 2px solid #ccc;
+    color: #2d6a4f; /* Verde oscuro */
+    background-color: #d8f3dc; /* Verde muy claro */
+    border: 2px solid #2d6a4f; /* Verde oscuro */
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -448,14 +463,14 @@ h1, h2, h3,
 }
 
 .service-button:hover {
-    background-color: #e0e0e0;
-    border-color: #999;
+    background-color: #b7e4c7; /* Verde claro */
+    border-color: #1b4332; /* Verde más oscuro */
 }
 
 .service-button.selected {
-    background-color: #333;
-    color: #fff;
-    border-color: #333;
+    background-color: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
+    border-color: #d14d72; /* Rosado fuerte */
 }
 
 #turnos-servicios-list input[type="checkbox"] {
@@ -466,8 +481,8 @@ h1, h2, h3,
     display: block;
     width: 100%;
     padding: 10px;
-    background-color: #333;
-    color: #fff;
+    background-color: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
     border: none;
     border-radius: 5px;
     font-size: 1rem;
@@ -476,16 +491,16 @@ h1, h2, h3,
 }
 
 .turnos-reserve-button:hover {
-    background-color: #575757;
+    background-color: #b23a5e; /* Rosado más oscuro */
 }
 
 .turnos-summary-container {
     flex: 1;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
+    background-color: #fff5f7; /* Rosado claro */
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
     position: sticky;
     top: 20px;
     height: fit-content;
@@ -494,12 +509,14 @@ h1, h2, h3,
 .turnos-summary-container h2 {
     font-size: 1.5rem;
     margin-bottom: 15px;
+    color: #d14d72; /* Rosado fuerte */
 }
 
 .turnos-summary-container p,
 .turnos-summary-container ul {
     font-size: 1rem;
     margin-bottom: 10px;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 .turnos-summary-container ul {
@@ -524,7 +541,7 @@ h1, h2, h3,
     text-align: center;
     margin: 40px 0;
     font-size: 50px;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     font-weight: 800;
 }
 
@@ -533,9 +550,10 @@ h1, h2, h3,
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #fff5f7; /* Rosado claro */
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .contact-form-group {
@@ -547,6 +565,7 @@ h1, h2, h3,
     display: block;
     font-weight: bold;
     margin-bottom: 5px;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 .contact-form-group input:not([type="radio"]),
@@ -554,13 +573,14 @@ h1, h2, h3,
     width: 100%;
     padding: 10px;
     box-sizing: border-box;
-    border: 1px solid #ccc;
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 5px;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .contact-metodo-pago-info {
     font-size: 0.9rem;
-    color: #555;
+    color: #2d6a4f; /* Verde oscuro */
     margin-top: 10px;
 }
 
@@ -568,8 +588,8 @@ h1, h2, h3,
     display: block;
     width: 100%;
     padding: 10px;
-    background-color: #333;
-    color: #fff;
+    background-color: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
     border: none;
     border-radius: 5px;
     font-size: 1rem;
@@ -578,13 +598,13 @@ h1, h2, h3,
 }
 
 .contact-reserve-button:hover {
-    background-color: #575757;
+    background-color: #b23a5e; /* Rosado más oscuro */
 }
 
 /* Footer de contacto */
 .contact-container {
-    background-color: #222;
-    color: white;
+    background-color: #2d6a4f; /* Verde oscuro */
+    color: #fff5f7; /* Rosado claro */
     padding: 25px 0 20px 0;
     display: flex;
     justify-content: center;
@@ -627,6 +647,7 @@ h1, h2, h3,
     font-weight: bold;
     margin-bottom: 25px;
     margin-top: 0;
+    color: #fff5f7; /* Rosado claro */
 }
 
 .form-wrapper {
@@ -636,7 +657,7 @@ h1, h2, h3,
 }
 
 .form-container {
-    background-color: #333;
+    background-color: #40916c; /* Verde medio */
     padding: 25px;
     max-width: 280px;
 }
@@ -645,6 +666,7 @@ h1, h2, h3,
     margin-top: 0;
     margin-bottom: 20px;
     line-height: 2.0;
+    color: #fff5f7; /* Rosado claro */
 }
 
 .subscribe-form {
@@ -662,12 +684,13 @@ h1, h2, h3,
     font-size: 1rem;
     margin-bottom: 10px;
     box-sizing: border-box;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .subscribe-form button {
     width: 100%;
-    background-color: #ff6f61;
-    color: #000;
+    background-color: #ffb3c6; /* Rosado claro */
+    color: #2d6a4f; /* Verde oscuro */
     height: 50px;
     border: none;
     padding: 10px;
@@ -677,8 +700,8 @@ h1, h2, h3,
 }
 
 .subscribe-form button:hover {
-    background-color: #b54842;
-    color: #fff;
+    background-color: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
 }
 
 .contact-info, 
@@ -694,6 +717,7 @@ h1, h2, h3,
 
 .contact-info p {
     margin: 0;
+    color: #fff5f7; /* Rosado claro */
 }
 
 .social-icons {
@@ -718,8 +742,8 @@ h1, h2, h3,
 }
 
 .footer {
-    background-color: #222;
-    color: white;
+    background-color: #2d6a4f; /* Verde oscuro */
+    color: #fff5f7; /* Rosado claro */
     text-align: center;
     padding: 20px;
     width: 100%;
@@ -744,11 +768,12 @@ h1, h2, h3,
 }
 
 .admin-section {
-    background-color: #fff;
+    background-color: #fff5f7; /* Rosado claro */
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 10px rgba(45, 106, 79, 0.1); /* Sombra verde */
     padding: 20px;
     margin-bottom: 20px;
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .hidden {
@@ -762,6 +787,7 @@ h1, h2, h3,
 .form-group label {
     display: block;
     font-weight: bold;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 .form-group input[type="text"],
@@ -771,9 +797,10 @@ h1, h2, h3,
 .form-group select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 4px;
     font-size: 16px;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .form-group textarea {
@@ -782,7 +809,7 @@ h1, h2, h3,
 }
 
 button {
-    background-color: #4a90e2;
+    background-color: #40916c; /* Verde medio */
     color: white;
     border: none;
     padding: 10px 15px;
@@ -794,11 +821,11 @@ button {
 }
 
 button:hover {
-    background-color: #357ab8;
+    background-color: #2d6a4f; /* Verde oscuro */
 }
 
 #service-form-container {
-    border: 2px solid #4a90e2;
+    border: 2px solid #d14d72; /* Rosado fuerte */
 }
 
 .service-form-actions {
@@ -808,16 +835,16 @@ button:hover {
 }
 
 #submit-service {
-    background-color: #28a745;
+    background-color: #40916c; /* Verde medio */
 }
 
 #cancel-service {
-    background-color: #dc3545;
+    background-color: #d14d72; /* Rosado fuerte */
 }
 
 .admin-title {
     text-align: center;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     margin: 20px 0;
 }
 
@@ -825,7 +852,7 @@ button:hover {
 #generate-code-form input[type="email"] {
     width: 100%;
     padding: 12px 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 5px;
     font-size: 16px;
     margin-bottom: 15px;
@@ -833,6 +860,7 @@ button:hover {
     display: block;
     margin-left: 0px;
     margin-right: 0px;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 /* ============ ESTILOS ESPECÍFICOS PARA LOGIN & REGISTER ============ */
@@ -841,10 +869,11 @@ button:hover {
     width: 100%;
     margin: 100px auto;
     padding: 40px;
-    background-color: #fff;
+    background-color: #fff5f7; /* Rosado claro */
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(45, 106, 79, 0.1); /* Sombra verde */
     text-align: center;
+    border: 1px solid #ffb3c6; /* Borde rosado */
 }
 
 .profile-header {
@@ -854,7 +883,7 @@ button:hover {
 .profile-title {
     font-size: 24px;
     font-weight: 700;
-    color: #333;
+    color: #d14d72; /* Rosado fuerte */
     margin-bottom: 10px;
 }
 
@@ -874,30 +903,31 @@ button:hover {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: #333;
+    color: #2d6a4f; /* Verde oscuro */
     font-size: 14px;
 }
 
 .profile-container .form-group input {
     width: 100%;
     padding: 12px 15px;
-    border: 1px solid #ddd;
+    border: 1px solid #ffb3c6; /* Borde rosado */
     border-radius: 5px;
     font-size: 16px;
     transition: border-color 0.3s;
     box-sizing: border-box;
+    background-color: #fff5f7; /* Rosado claro */
 }
 
 .profile-container .form-group input:focus {
-    border-color: #007bff;
+    border-color: #d14d72; /* Rosado fuerte */
     outline: none;
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(209, 77, 114, 0.2); /* Sombra rosada */
 }
 
 .profile-container .form-button {
     width: 100%;
     padding: 12px;
-    background-color: #007bff;
+    background-color: #40916c; /* Verde medio */
     color: white;
     border: none;
     border-radius: 5px;
@@ -909,24 +939,24 @@ button:hover {
 }
 
 .profile-container .form-button:hover {
-    background-color: #0056b3;
+    background-color: #2d6a4f; /* Verde oscuro */
 }
 
 .profile-container p {
     text-align: center;
     margin-top: 20px;
-    color: #666;
+    color: #2d6a4f; /* Verde oscuro */
 }
 
 .profile-container a {
-    color: #007bff;
+    color: #d14d72; /* Rosado fuerte */
     text-decoration: none;
     transition: color 0.3s;
 }
 
 .profile-container a:hover {
     text-decoration: underline;
-    color: #0056b3;
+    color: #b23a5e; /* Rosado más oscuro */
 }
 
 /* ============ TOAST DE ERROR ============ */
@@ -936,12 +966,12 @@ button:hover {
     right: 30px;
     min-width: 260px;
     max-width: 350px;
-    background: #ff4d4f;
-    color: #fff;
+    background: #d14d72; /* Rosado fuerte */
+    color: #fff5f7; /* Rosado claro */
     padding: 16px 24px;
     border-radius: 8px;
     font-size: 1rem;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 16px rgba(45, 106, 79, 0.15); /* Sombra verde */
     opacity: 0;
     pointer-events: none;
     z-index: 9999;
@@ -1091,7 +1121,7 @@ button:hover {
         margin-top: 0;
         height: auto !important;
         padding: 18px 10px;
-        background: rgba(255,255,255,0.92);
+        background: rgba(209, 77, 114, 0.9); /* Rosado fuerte con transparencia */
         box-shadow: 0 2px 8px rgba(0,0,0,0.07);
     }
     
