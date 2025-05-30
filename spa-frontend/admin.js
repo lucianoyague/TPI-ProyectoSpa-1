@@ -1,6 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // Verificación de token
+    // Configuración base
+    const API_BASE_URL = 'http://localhost:3000/api';
+    const API_ADMIN_BASE_URL = `${API_BASE_URL}/admin`;
     const token = localStorage.getItem("token");
+
+    // Verificación de token y rol
     if (!token) {
         alert("No tienes permiso para acceder a esta página.");
         window.location.href = "login.html";
@@ -9,8 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        if (!payload) {
-            throw new Error("Token inválido");
+        if (!payload || payload.role !== 'admin') {
+            throw new Error("Acceso no autorizado");
         }
     } catch (error) {
         alert("Error de autenticación: " + error.message);
@@ -18,347 +22,382 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // Elementos del DOM
+    // ==================== FUNCIONES AUXILIARES ====================
+    const toggleVisibility = (element, show) => {
+        element.classList.toggle("hidden", !show);
+    };
+
+    const resetForm = (form) => {
+        form.reset();
+        form.dataset.action = "";
+        form.dataset.id = "";
+    };
+
+    const showAlert = (message, isError = false) => {
+        alert(`${isError ? 'Error: ' : ''}${message}`);
+    };
+
+    const handleFetchError = async (response) => {
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error || errorData.message || `Error ${response.status}: ${response.statusText}`;
+            throw new Error(errorMessage);
+        }
+        return response.json();
+    };
+
+    // Función genérica para manejar formularios
+    const setupForm = (form, endpoint, successCallback) => {
+        const handler = async (e) => {
+            e.preventDefault();
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            
+            try {
+                const formData = Object.fromEntries(new FormData(e.target));
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await handleFetchError(response);
+                showAlert(result.message || "Operación exitosa");
+                if (successCallback) successCallback();
+            } catch (error) {
+                showAlert("Error: " + error.message, true);
+                console.error(error);
+            } finally {
+                submitButton.disabled = false;
+            }
+        };
+        
+        // Eliminar cualquier listener previo y agregar el nuevo
+        form.removeEventListener("submit", handler);
+        form.addEventListener("submit", handler);
+    };
+
+    // ==================== GESTIÓN DE SERVICIOS ====================
     const serviceFormContainer = document.getElementById("service-form-container");
     const serviceForm = document.getElementById("service-form");
     const formTitle = document.getElementById("service-form-title");
 
-    // Mostrar formulario para añadir servicio
     document.getElementById("add-service").addEventListener("click", () => {
         formTitle.textContent = "Añadir Servicio";
         serviceForm.dataset.action = "add";
-        serviceForm.reset();
-        document.getElementById("descripcion").value = ""; // Asegurar campo limpio
-        serviceFormContainer.classList.remove("hidden");
+        resetForm(serviceForm);
+        toggleVisibility(serviceFormContainer, true);
     });
 
-    // Editar servicio existente
     document.getElementById("edit-service").addEventListener("click", async () => {
         const serviceId = prompt("Ingrese el ID del servicio que desea editar:");
-        if (!serviceId || isNaN(serviceId)) {
-            alert("Debe ingresar un ID válido");
-            return;
-        }
+        if (!serviceId || isNaN(serviceId)) return;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/servicios/${serviceId}`, {
-                method: "GET",
+            const response = await fetch(`${API_BASE_URL}/servicios/${serviceId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Error al obtener el servicio");
-            }
-
-            const serviceData = await response.json();
+            const serviceData = await handleFetchError(response);
             
-            // Rellenar formulario con datos existentes
             formTitle.textContent = "Editar Servicio";
             serviceForm.dataset.action = "edit";
             serviceForm.dataset.serviceId = serviceId;
             document.getElementById("nombre").value = serviceData.nombre;
-            document.getElementById("descripcion").value = serviceData.descripcion || "Sin descripción"; // Asegurar descripción
+            document.getElementById("descripcion").value = serviceData.descripcion || "";
             document.getElementById("duracion").value = serviceData.duracion;
             document.getElementById("precio").value = serviceData.precio;
             document.getElementById("categoria").value = serviceData.categoria;
-            
-            serviceFormContainer.classList.remove("hidden");
-
+            toggleVisibility(serviceFormContainer, true);
         } catch (error) {
-            console.error("Error al obtener el servicio:", error);
-            alert(`Error: ${error.message}`);
+            showAlert("Error al obtener servicio: " + error.message, true);
+            console.error(error);
         }
     });
 
-    // Envío del formulario de servicio
-    serviceForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // Obtener valores del formulario
-        const nombre = document.getElementById("nombre").value.trim();
-        const descripcion = document.getElementById("descripcion").value.trim() || "Sin descripción"; // Valor por defecto
-        const duracion = parseInt(document.getElementById("duracion").value);
-        const precio = parseFloat(document.getElementById("precio").value);
-        const categoria = document.getElementById("categoria").value;
-
-        // Validaciones básicas
-        if (!nombre || nombre.length < 3) {
-            alert("El nombre debe tener al menos 3 caracteres");
-            return;
-        }
-
-        if (isNaN(duracion) || duracion <= 0) {
-            alert("La duración debe ser un número positivo");
-            return;
-        }
-
-        if (isNaN(precio) || precio <= 0) {
-            alert("El precio debe ser un número positivo");
-            return;
-        }
-
-        if (!categoria) {
-            alert("Debe seleccionar una categoría");
-            return;
-        }
-
-        // Preparar datos para enviar
-        const serviceData = { 
-            nombre, 
-            descripcion, // Incluir descripción siempre
-            duracion, 
-            precio, 
-            categoria 
-        };
-
-        // Determinar si es creación o edición
-        const action = serviceForm.dataset.action;
-        const serviceId = serviceForm.dataset.serviceId;
-        let url = "http://localhost:3000/api/servicios";
-        let method = "POST";
-
-        if (action === "edit") {
-            url += `/${serviceId}`;
-            method = "PUT";
-        }
-
-        try {
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(serviceData)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Error al procesar el servicio");
-            }
-
-            const result = await response.json();
-            alert(result.message || "Operación realizada con éxito.");
-            serviceForm.reset();
-            serviceFormContainer.classList.add("hidden");
-            
-            // Opcional: Recargar lista de servicios si la tienes
-            // loadServices(); 
-
-        } catch (error) {
-            console.error("Error completo:", {
-                error: error,
-                serviceData: serviceData,
-                timestamp: new Date().toISOString()
-            });
-            
-            let errorMessage = "Error al procesar el servicio";
-            if (error.message.includes("ER_BAD_NULL_ERROR")) {
-                errorMessage = "Faltan campos obligatorios. Por favor complete todos los campos.";
-            } else if (error.message.includes("ER_DUP_ENTRY")) {
-                errorMessage = "Ya existe un servicio con ese nombre.";
-            }
-            
-            alert(errorMessage);
-        }
+    // Configurar el formulario de servicios
+    setupForm(serviceForm, `${API_BASE_URL}/servicios`, () => {
+        toggleVisibility(serviceFormContainer, false);
     });
 
-    // Cancelar formulario
-    document.getElementById("cancel-service").addEventListener("click", () => {
-        serviceForm.reset();
-        serviceFormContainer.classList.add("hidden");
-    });
-
-    // Eliminar servicio
     document.getElementById("delete-service").addEventListener("click", async () => {
-        const serviceId = prompt("Ingrese el ID del servicio que desea eliminar:");
-        if (!serviceId || isNaN(serviceId)) {
-            alert("ID no válido");
-            return;
-        }
+        const serviceId = prompt("Ingrese el ID del servicio a eliminar:");
+        if (!serviceId || isNaN(serviceId)) return;
 
-        if (!confirm(`¿Está seguro que desea eliminar el servicio con ID ${serviceId}?`)) return;
+        if (confirm(`¿Eliminar servicio ID ${serviceId}?`)) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/servicios/${serviceId}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const result = await handleFetchError(response);
+                showAlert(result.message || "Servicio eliminado exitosamente");
+            } catch (error) {
+                showAlert("Error al eliminar: " + error.message, true);
+                console.error(error);
+            }
+        }
+    });
+
+    document.getElementById("cancel-service")?.addEventListener("click", () => {
+        toggleVisibility(serviceFormContainer, false);
+    });
+
+    // ==================== GESTIÓN DE COMBOS ====================
+    const comboFormContainer = document.getElementById("combo-form-container");
+    const comboForm = document.getElementById("combo-form");
+    const comboFormTitle = document.getElementById("combo-form-title");
+
+    document.getElementById("add-combo").addEventListener("click", () => {
+        comboFormTitle.textContent = "Añadir Combo";
+        comboForm.dataset.action = "add";
+        resetForm(comboForm);
+        toggleVisibility(comboFormContainer, true);
+    });
+
+    document.getElementById("edit-combo").addEventListener("click", async () => {
+        const comboId = prompt("Ingrese el ID del combo que desea editar:");
+        if (!comboId || isNaN(comboId)) return;
 
         try {
-            const response = await fetch(`http://localhost:3000/api/servicios/${serviceId}`, {
-                method: "DELETE",
+            const response = await fetch(`${API_BASE_URL}/combos/${comboId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Error al eliminar el servicio");
-            }
-
-            const result = await response.json();
-            alert(result.message || "Servicio eliminado exitosamente");
+            const comboData = await handleFetchError(response);
+            
+            comboFormTitle.textContent = "Editar Combo";
+            comboForm.dataset.action = "edit";
+            comboForm.dataset.comboId = comboId;
+            document.getElementById("combo-nombre").value = comboData.nombre;
+            document.getElementById("combo-descripcion").value = comboData.descripcion || "";
+            document.getElementById("combo-precio").value = comboData.precio_total;
+            document.getElementById("combo-servicios").value = comboData.servicios.map(s => s.id_servicio).join(", ");
+            toggleVisibility(comboFormContainer, true);
         } catch (error) {
-            console.error("Error al eliminar servicio:", error);
-            alert(`Error: ${error.message}`);
+            showAlert("Error al obtener combo: " + error.message, true);
+            console.error(error);
         }
     });
 
-    // Gestión de Combos
-const comboFormContainer = document.getElementById("combo-form-container");
-const comboForm = document.getElementById("combo-form");
-const comboFormTitle = document.getElementById("combo-form-title");
+    // Configurar el formulario de combos
+    setupForm(comboForm, `${API_BASE_URL}/combos`, () => {
+        toggleVisibility(comboFormContainer, false);
+    });
 
-document.getElementById("add-combo").addEventListener("click", () => {
-    comboFormTitle.textContent = "Añadir Combo";
-    comboForm.dataset.action = "add";
-    comboForm.reset();
-    comboFormContainer.classList.remove("hidden");
-});
+    document.getElementById("delete-combo")?.addEventListener("click", async () => {
+        const comboId = prompt("Ingrese el ID del combo a eliminar:");
+        if (!comboId || isNaN(comboId)) return;
 
-document.getElementById("edit-combo").addEventListener("click", async () => {
-    const comboId = prompt("Ingrese el ID del combo que desea editar:");
-    if (!comboId || isNaN(comboId)) {
-        alert("Debe ingresar un ID válido");
-        return;
-    }
-
-    try {
-        const response = await fetch(`http://localhost:3000/api/combos/${comboId}`, {
-            method: "GET",
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!response.ok) throw new Error("Error al obtener el combo");
-
-        const comboData = await response.json();
-        comboFormTitle.textContent = "Editar Combo";
-        comboForm.dataset.action = "edit";
-        comboForm.dataset.comboId = comboId;
-        document.getElementById("combo-nombre").value = comboData.nombre;
-        document.getElementById("combo-descripcion").value = comboData.descripcion || "";
-        document.getElementById("combo-precio").value = comboData.precio_total;
-        document.getElementById("combo-servicios").value = comboData.servicios.map(s => s.id_servicio).join(", ");
-        comboFormContainer.classList.remove("hidden");
-
-    } catch (error) {
-        console.error("Error al obtener el combo:", error);
-        alert(`Error: ${error.message}`);
-    }
-});
-
-comboForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const nombre = document.getElementById("combo-nombre").value.trim();
-    const descripcion = document.getElementById("combo-descripcion").value.trim() || "Sin descripción";
-    const precio = parseFloat(document.getElementById("combo-precio").value);
-    const serviciosInput = document.getElementById("combo-servicios").value.trim();
-
-    if (!nombre || isNaN(precio) || !serviciosInput) {
-        alert("Por favor, complete todos los campos correctamente.");
-        return;
-    }
-
-    const servicios = serviciosInput.split(",").map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-
-    const comboData = {
-        nombre,
-        descripcion,
-        precio_total: precio,
-        servicios
-    };
-
-    const action = comboForm.dataset.action;
-    const comboId = comboForm.dataset.comboId;
-
-    let url = "http://localhost:3000/api/combos";
-    let method = "POST";
-
-    if (action === "edit") {
-        url += `/${comboId}`;
-        method = "PUT";
-    }
-
-    try {
-        const response = await fetch(url, {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(comboData)
-        });
-
-        if (!response.ok) throw new Error("Error al procesar el combo");
-
-        const data = await response.json();
-        alert(data.message || "Operación realizada con éxito.");
-        comboForm.reset();
-        comboFormContainer.classList.add("hidden");
-    } catch (error) {
-        console.error("Error al procesar el combo:", error);
-        alert(`Error: ${error.message}`);
-    }
-});
-
-document.getElementById("cancel-combo").addEventListener("click", () => {
-    comboForm.reset();
-    comboFormContainer.classList.add("hidden");
-});
-
-document.getElementById("delete-combo").addEventListener("click", async () => {
-    const comboId = prompt("Ingrese el ID del combo que desea eliminar:");
-    if (!comboId || isNaN(comboId)) {
-        alert("ID no válido");
-        return;
-    }
-
-    if (!confirm(`¿Está seguro que desea eliminar el combo con ID ${comboId}?`)) return;
-
-    try {
-        const response = await fetch(`http://localhost:3000/api/combos/${comboId}`, {
-            method: "DELETE",
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (!response.ok) throw new Error("Error al eliminar el combo");
-
-        alert("Combo eliminado exitosamente");
-    } catch (error) {
-        console.error("Error al eliminar combo:", error);
-        alert(`Error: ${error.message}`);
-    }
-});
-    // Generar código de invitación
-    document.getElementById("generate-code-form").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email = document.getElementById("email").value.trim();
-
-        if (!email || !email.includes("@")) {
-            alert("Por favor, ingresa un correo electrónico válido.");
-            return;
+        if (confirm(`¿Eliminar combo ID ${comboId}?`)) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/combos/${comboId}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const result = await handleFetchError(response);
+                showAlert(result.message || "Combo eliminado exitosamente");
+            } catch (error) {
+                showAlert("Error al eliminar combo: " + error.message, true);
+                console.error(error);
+            }
         }
+    });
 
-        try {
-            const response = await fetch("http://localhost:3000/api/admin/generate-and-send-code", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({ email })
+    document.getElementById("cancel-combo")?.addEventListener("click", () => {
+        toggleVisibility(comboFormContainer, false);
+    });
+
+    // ==================== GESTIÓN DE ADMINISTRADORES ====================
+    const adminFormContainer = document.getElementById("admin-form-container");
+    const adminForm = document.getElementById("admin-form");
+    const adminsListContainer = document.getElementById("admins-list-container");
+    const adminsTable = document.getElementById("admins-table").querySelector("tbody");
+    const addAdminBtn = document.getElementById("add-admin");
+    const viewAdminsBtn = document.getElementById("view-admins");
+
+    // Toggle para añadir administrador
+    addAdminBtn.addEventListener("click", () => {
+        const isFormVisible = !adminFormContainer.classList.contains("hidden");
+        if (isFormVisible) {
+            toggleVisibility(adminFormContainer, false);
+        } else {
+            resetForm(adminForm);
+            toggleVisibility(adminFormContainer, true);
+            toggleVisibility(adminsListContainer, false);
+        }
+    });
+
+    // Configurar el formulario de administradores
+    setupForm(adminForm, `${API_ADMIN_BASE_URL}/administradores`, () => {
+        toggleVisibility(adminFormContainer, false);
+        viewAdminsBtn.click();
+    });
+
+    // Toggle para ver administradores
+    viewAdminsBtn.addEventListener("click", async () => {
+        const isListVisible = !adminsListContainer.classList.contains("hidden");
+        if (isListVisible) {
+            toggleVisibility(adminsListContainer, false);
+        } else {
+            try {
+                const response = await fetch(`${API_ADMIN_BASE_URL}/administradores`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                const admins = await handleFetchError(response);
+                renderAdminsTable(admins);
+                toggleVisibility(adminFormContainer, false);
+                toggleVisibility(adminsListContainer, true);
+            } catch (error) {
+                showAlert("Error al obtener administradores: " + error.message, true);
+                console.error(error);
+            }
+        }
+    });
+
+    document.getElementById("cancel-admin")?.addEventListener("click", () => {
+        toggleVisibility(adminFormContainer, false);
+    });
+
+    document.getElementById("close-admins-list")?.addEventListener("click", () => {
+        toggleVisibility(adminsListContainer, false);
+    });
+
+    function renderAdminsTable(admins) {
+        adminsTable.innerHTML = "";
+        admins.forEach(admin => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${admin.id_admin}</td>
+                <td>${admin.nombre} ${admin.apellido}</td>
+                <td>${admin.email}</td>
+                <td>${admin.telefono || 'N/A'}</td>
+                <td>
+                    <button class="btn-delete" data-id="${admin.id_admin}">Eliminar</button>
+                </td>
+            `;
+            adminsTable.appendChild(row);
+        });
+
+        // Manejar eliminación
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const id = e.target.dataset.id;
+                if (confirm(`¿Eliminar administrador con ID ${id}?`)) {
+                    try {
+                        const response = await fetch(`${API_ADMIN_BASE_URL}/administradores/${id}`, {
+                            method: "DELETE",
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        
+                        const result = await handleFetchError(response);
+                        showAlert(result.message || "Administrador eliminado exitosamente");
+                        viewAdminsBtn.click();
+                    } catch (error) {
+                        showAlert("Error al eliminar administrador: " + error.message, true);
+                        console.error(error);
+                    }
+                }
             });
+        });
+    }
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || "Error al generar el código");
-            }
+    // ==================== GESTIÓN DE EMPLEADOS ====================
+    const employeeFormContainer = document.getElementById("employee-form-container");
+    const employeeForm = document.getElementById("employee-form");
+    const employeesListContainer = document.getElementById("employees-list-container");
+    const employeesTable = document.getElementById("employees-table").querySelector("tbody");
+    const addEmployeeBtn = document.getElementById("add-employee");
+    const viewEmployeesBtn = document.getElementById("view-employees");
 
-            const data = await response.json();
-            alert(data.message || "Código generado y enviado exitosamente.");
-            document.getElementById("email").value = ""; // Limpiar campo
-        } catch (error) {
-            console.error("Error al generar código:", error);
-            alert(`Error: ${error.message}`);
+    // Toggle para añadir empleado
+    addEmployeeBtn.addEventListener("click", () => {
+        const isFormVisible = !employeeFormContainer.classList.contains("hidden");
+        if (isFormVisible) {
+            toggleVisibility(employeeFormContainer, false);
+        } else {
+            resetForm(employeeForm);
+            toggleVisibility(employeeFormContainer, true);
+            toggleVisibility(employeesListContainer, false);
         }
     });
+
+    // Configurar el formulario de empleados
+    setupForm(employeeForm, `${API_ADMIN_BASE_URL}/empleados`, () => {
+        toggleVisibility(employeeFormContainer, false);
+        viewEmployeesBtn.click();
+    });
+
+    // Toggle para ver empleados
+    viewEmployeesBtn.addEventListener("click", async () => {
+        const isListVisible = !employeesListContainer.classList.contains("hidden");
+        if (isListVisible) {
+            toggleVisibility(employeesListContainer, false);
+        } else {
+            try {
+                const response = await fetch(`${API_ADMIN_BASE_URL}/empleados`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                const empleados = await handleFetchError(response);
+                renderEmployeesTable(empleados);
+                toggleVisibility(employeeFormContainer, false);
+                toggleVisibility(employeesListContainer, true);
+            } catch (error) {
+                showAlert("Error al obtener empleados: " + error.message, true);
+                console.error(error);
+            }
+        }
+    });
+
+    document.getElementById("cancel-employee")?.addEventListener("click", () => {
+        toggleVisibility(employeeFormContainer, false);
+    });
+
+    document.getElementById("close-employees-list")?.addEventListener("click", () => {
+        toggleVisibility(employeesListContainer, false);
+    });
+
+    function renderEmployeesTable(empleados) {
+        employeesTable.innerHTML = "";
+        empleados.forEach(empleado => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${empleado.id_empleado}</td>
+                <td>${empleado.nombre} ${empleado.apellido}</td>
+                <td>${empleado.email}</td>
+                <td>${empleado.puesto}</td>
+                <td>
+                    <button class="btn-delete" data-id="${empleado.id_empleado}">Eliminar</button>
+                </td>
+            `;
+            employeesTable.appendChild(row);
+        });
+
+        // Manejar eliminación
+        document.querySelectorAll(".btn-delete").forEach(btn => {
+            btn.addEventListener("click", async (e) => {
+                const id = e.target.dataset.id;
+                if (confirm(`¿Eliminar empleado con ID ${id}?`)) {
+                    try {
+                        const response = await fetch(`${API_ADMIN_BASE_URL}/empleados/${id}`, {
+                            method: "DELETE",
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        
+                        const result = await handleFetchError(response);
+                        showAlert(result.message || "Empleado eliminado exitosamente");
+                        viewEmployeesBtn.click();
+                    } catch (error) {
+                        showAlert("Error al eliminar empleado: " + error.message, true);
+                        console.error(error);
+                    }
+                }
+            });
+        });
+    }
 
     // Cerrar sesión
     document.getElementById("logout-button").addEventListener("click", () => {

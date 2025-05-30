@@ -11,7 +11,7 @@ const verifyToken = (req, res, next) => {
 
     try {
         const payload = jwt.verify(token, SECRET_KEY);
-        req.admin = payload; // Guardar los datos del token en la solicitud
+        req.user = payload; // Guardar los datos del token en la solicitud
         next();
     } catch (err) {
         return res.status(403).json({ error: 'Token inválido o expirado' });

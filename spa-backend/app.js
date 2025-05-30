@@ -6,6 +6,8 @@ const path = require('path');
 const db = require('./db');
 const { sendInvitationCode } = require('./utils/mailer');
 const adminRoutes = require('./routes/adminRoutes');
+const authRoutes = require('./routes/authRoutes');
+const clientRoutes = require('./routes/clientRoutes');
 const turnoRoutes = require('./routes/turnoRoutes');
 const servicioRoutes = require('./routes/servicioRoutes');
 const comboRoutes = require('./routes/comboRoutes');
@@ -16,7 +18,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Ruta estática CORREGIDA (usa path.join correctamente)
+// Ruta estática
 app.use(express.static(path.join('C:', 'Users', 'gabim', 'Downloads', 'SpaProject', 'spa-frontend')));
 
 // Middleware de logs
@@ -26,12 +28,14 @@ app.use((req, res, next) => {
 });
 
 // Rutas API
-app.use('/api/admin', adminRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/clientes', clientRoutes);
 app.use('/api/turnos', turnoRoutes);
 app.use('/api/servicios', servicioRoutes);
 app.use('/api/combos', comboRoutes);
+app.use('/api/admin', adminRoutes); // Esta línea es clave
 
-// Ruta para manejar archivos HTML (ÚNICA ruta comodín)
+// Ruta para manejar archivos HTML
 app.get(/^[^.]+$/, (req, res) => {
     const filePath = path.join('C:', 'Users', 'gabim', 'Downloads', 'SpaProject', 'spa-frontend', `${req.path}.html`);
     res.sendFile(filePath, { root: __dirname });
@@ -43,7 +47,7 @@ app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
 
-// Generar código inicial (opcional, puedes comentarlo temporalmente)
+// Generar código inicial (opcional)
 const generateInitialCode = async () => {
     try {
         const [rows] = await db.query('SELECT COUNT(*) AS count FROM administrador');

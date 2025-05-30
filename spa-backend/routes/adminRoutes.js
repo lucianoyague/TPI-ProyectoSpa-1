@@ -2,128 +2,185 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db');
-const crypto = require('crypto');
 const verifyToken = require('../middleware/verifyToken');
 const { sendInvitationCode } = require('../utils/mailer');
 const router = express.Router();
 
 const SECRET_KEY = process.env.SECRET_KEY || 'tu_clave_secreta';
-const INVITATION_CODE = process.env.INVITATION_CODE || 'ADMIN123';
 
-// Ruta para generar y enviar un código de invitación
-router.post('/generate-and-send-code', verifyToken, async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ error: 'El correo electrónico es obligatorio' });
+// Middleware para verificar admin
+const verifyAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Acceso no autorizado' });
     }
+    next();
+};
+
+// Crear nuevo administrador con contraseña temporal
+router.post('/administradores', verifyToken, verifyAdmin, async (req, res) => {
+    const { nombre, apellido, email, telefono } = req.body;
 
     try {
-        // Generar un código único
-        const codigo = crypto.randomBytes(16).toString('hex');
-        console.log(`Código generado: ${codigo}`); // 🚀 Verificación
+        // Verificar email único
+        const [existing] = await db.query(
+            `SELECT email FROM (
+                SELECT email FROM administrador
+                UNION SELECT email FROM empleado
+                UNION SELECT email FROM cliente
+            ) AS all_users WHERE email = ?`, 
+            [email]
+        );
 
-        // Insertar el código en la base de datos
-        const [result] = await db.query('INSERT INTO codigo_invitacion (codigo, usado) VALUES (?, ?)', [codigo, 0]);
-        console.log(`Resultado de la inserción en la BD:`, result); // 🚀 Confirmación
-
-        if (result.affectedRows === 0) {
-            throw new Error('Error al insertar el código en la base de datos');
+        if (existing.length > 0) {
+            return res.status(400).json({ error: 'El correo ya está registrado' });
         }
 
-        // Enviar el código por correo
-        await sendInvitationCode(email, codigo);
-        console.log(`Correo enviado a ${email}`); // 🚀 Confirmación del envío
+        // Generar contraseña temporal
+        const tempPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
-        res.status(200).json({ message: 'Código generado y enviado exitosamente' });
-    } catch (err) {
-        console.error('Error al generar y enviar el código:', err);
-        res.status(500).json({ error: 'Error al generar y enviar el código' });
-    }
-});
-
-// Ruta para registrar un nuevo administrador
-router.post('/register', async (req, res) => {
-    const { nombre, apellido, email, telefono, contraseña, codigoInvitacion } = req.body;
-
-    if (!nombre || !apellido || !email || !telefono || !contraseña || !codigoInvitacion) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
-
-    try {
-        // Verificar si el código existe y no ha sido usado
-        const [rows] = await db.query('SELECT * FROM codigo_invitacion WHERE codigo = ? AND usado = FALSE', [codigoInvitacion]);
-        if (rows.length === 0) {
-            return res.status(403).json({ error: 'Código de invitación inválido o ya usado' });
-        }
-
-        // Encriptar la contraseña
-        const hashedPassword = await bcrypt.hash(contraseña, 10);
-
-        // Insertar el administrador en la base de datos
+        // Insertar administrador
         const [result] = await db.query(
-            'INSERT INTO administrador (nombre, apellido, email, telefono, contraseña) VALUES (?, ?, ?, ?, ?)',
+            'INSERT INTO administrador (nombre, apellido, email, telefono, contraseña, temp_password) VALUES (?, ?, ?, ?, ?, TRUE)',
             [nombre, apellido, email, telefono, hashedPassword]
         );
 
-        // Marcar el código como usado
-        await db.query('UPDATE codigo_invitacion SET usado = TRUE WHERE codigo = ?', [codigoInvitacion]);
+        // Enviar correo con la contraseña temporal
+        try {
+            await sendInvitationCode(email, tempPassword);
+            console.log(`Correo con contraseña temporal enviado a ${email}`);
+        } catch (emailError) {
+            console.error('Error al enviar correo:', emailError);
+            // Continuamos aunque falle el correo, pero registramos el error
+        }
 
-        // Generar un token JWT
-        const token = jwt.sign(
-            { id: result.insertId, email },
-            SECRET_KEY,
-            { expiresIn: '1h' }
-        );
+        res.status(201).json({ 
+            success: true,
+            message: 'Administrador creado exitosamente. La contraseña temporal ha sido enviada al correo electrónico.',
+            tempPassword,
+            adminId: result.insertId
+        });
 
-        res.status(201).json({ message: 'Administrador registrado exitosamente', token });
     } catch (err) {
-        console.error('Error al registrar el administrador:', err);
-        res.status(500).json({ error: 'Error al registrar el administrador' });
+        console.error('Error al crear administrador:', err);
+        res.status(500).json({ error: 'Error al crear administrador' });
     }
 });
 
-// Inicio de sesión de administradores
-router.post('/login', async (req, res) => {
-    console.log('Datos recibidos en /api/admin/login:', req.body); // Log para depuración
-    const { email, contraseña } = req.body;
-
-    if (!email || !contraseña) {
-        return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
+// Crear nuevo empleado con contraseña temporal
+router.post('/empleados', verifyToken, verifyAdmin, async (req, res) => {
+    const { nombre, apellido, email, telefono, puesto } = req.body;
 
     try {
-        // Buscar al administrador por email
-        const [rows] = await db.query('SELECT * FROM administrador WHERE email = ?', [email]);
-        if (rows.length === 0) {
-            return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
-        }
-
-        const admin = rows[0];
-
-        // Verificar la contraseña
-        const contraseñaValida = await bcrypt.compare(contraseña, admin.contraseña);
-        if (!contraseñaValida) {
-            return res.status(401).json({ error: 'Correo o contraseña incorrectos' });
-        }
-
-        // Generar un token
-        const token = jwt.sign(
-            { id: admin.id_admin, email: admin.email },
-            SECRET_KEY,
-            { expiresIn: '1h' }
+        // Verificar email único
+        const [existing] = await db.query(
+            `SELECT email FROM (
+                SELECT email FROM administrador
+                UNION SELECT email FROM empleado
+                UNION SELECT email FROM cliente
+            ) AS all_users WHERE email = ?`, 
+            [email]
         );
 
-        res.json({ message: 'Inicio de sesión exitoso', token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Error al iniciar sesión' });
-    }
+        if (existing.length > 0) {
+            return res.status(400).json({ error: 'El correo ya está registrado' });
+        }
 
-// Ruta protegida
-router.get('/protected', verifyToken, (req, res) => {
-    res.json({ message: 'Acceso permitido', admin: req.admin });
+        // Generar contraseña temporal
+        const tempPassword = Math.random().toString(36).slice(-8);
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+
+        // Insertar empleado
+        const [result] = await db.query(
+            'INSERT INTO empleado (nombre, apellido, email, telefono, contraseña, puesto, temp_password) VALUES (?, ?, ?, ?, ?, ?, TRUE)',
+            [nombre, apellido, email, telefono, hashedPassword, puesto]
+        );
+
+        // Enviar correo con la contraseña temporal
+        try {
+            await sendInvitationCode(email, tempPassword);
+            console.log(`Correo con contraseña temporal enviado a ${email}`);
+        } catch (emailError) {
+            console.error('Error al enviar correo:', emailError);
+            // Continuamos aunque falle el correo, pero registramos el error
+        }
+
+        res.status(201).json({ 
+            success: true,
+            message: 'Empleado creado exitosamente. La contraseña temporal ha sido enviada al correo electrónico.',
+            tempPassword,
+            employeeId: result.insertId
+        });
+
+    } catch (err) {
+        console.error('Error al crear empleado:', err);
+        res.status(500).json({ error: 'Error al crear empleado' });
+    }
 });
+
+// Listar todos los empleados
+router.get('/empleados', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const [empleados] = await db.query(`
+            SELECT id_empleado, nombre, apellido, email, puesto, 
+                   temp_password as requiereCambioContraseña 
+            FROM empleado
+        `);
+        res.json(empleados);
+    } catch (err) {
+        console.error('Error al obtener empleados:', err);
+        res.status(500).json({ error: 'Error al obtener empleados' });
+    }
+});
+
+// Eliminar empleado
+router.delete('/empleados/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const [result] = await db.query('DELETE FROM empleado WHERE id_empleado = ?', [req.params.id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Empleado no encontrado' });
+        }
+
+        res.json({ message: 'Empleado eliminado exitosamente' });
+    } catch (err) {
+        console.error('Error al eliminar empleado:', err);
+        res.status(500).json({ error: 'Error al eliminar empleado' });
+    }
+});
+
+// Listar todos los administradores
+router.get('/administradores', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const [admins] = await db.query(`
+            SELECT id_admin, nombre, apellido, email, telefono
+            FROM administrador
+        `);
+        res.json(admins);
+    } catch (err) {
+        console.error('Error al obtener administradores:', err);
+        res.status(500).json({ error: 'Error al obtener administradores' });
+    }
+});
+
+// Eliminar administrador (excepto el propio)
+router.delete('/administradores/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        if (req.user.id === parseInt(req.params.id)) {
+            return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+        }
+
+        const [result] = await db.query('DELETE FROM administrador WHERE id_admin = ?', [req.params.id]);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Administrador no encontrado' });
+        }
+
+        res.json({ message: 'Administrador eliminado exitosamente' });
+    } catch (err) {
+        console.error('Error al eliminar administrador:', err);
+        res.status(500).json({ error: 'Error al eliminar administrador' });
+    }
 });
 
 module.exports = router;

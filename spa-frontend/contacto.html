@@ -6,25 +6,11 @@
     <title>Confirmar Reserva - Sentirse Bien</title>
     <link rel="stylesheet" href="styles.css">
     <script defer src="contacto.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('token');
-            const loginLink = document.getElementById('nav-login-link');
-            const adminLink = document.getElementById('nav-admin-link');
-
-            if (token) {
-                loginLink.style.display = 'none';
-                adminLink.style.display = 'block';
-            } else {
-                loginLink.style.display = 'block';
-                adminLink.style.display = 'none';
-            }
-        });
-    </script>
 </head>
 <body>
 
     <div id="toast-error" class="toast-error"></div>
+    <div id="auth-check" style="display: none;"></div>
 
     <nav class="navbar">
         <img src="images/Logo blanco.png" alt="Logo del spa">
@@ -34,9 +20,56 @@
             <a href="turnos.html">Turnos</a>
             <a href="#contacto">Contacto</a>
             <a href="login.html" id="nav-login-link">Iniciar Sesión</a>
-            <a href="admin.html" id="nav-admin-link" style="display: none;">Panel Admin</a>
+            <a href="admin.html" id="nav-admin-link" style="display:none;">Panel Admin</a>
+            <a href="perfil-cliente.html" id="nav-client-link" style="display:none;">Mi Cuenta</a>
+            <a href="perfil-empleado.html" id="nav-employee-profile" style="display:none;">Mi Cuenta</a>
+            <button id="logout-button" style="display:none;">Cerrar Sesión</button>
         </div>
     </nav>
+
+    <script>
+    // Script único para manejar la navbar y sesión
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        const navLoginLink = document.getElementById('nav-login-link');
+        const navAdminLink = document.getElementById('nav-admin-link');
+        const navClientLink = document.getElementById('nav-client-link');
+        const navEmployeeProfile = document.getElementById('nav-employee-profile');
+        const logoutButton = document.getElementById('logout-button');
+
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                
+                navLoginLink.style.display = 'none';
+                if (logoutButton) logoutButton.style.display = 'block';
+                
+                switch(payload.role) {
+                    case 'admin':
+                        if (navAdminLink) navAdminLink.style.display = 'block';
+                        break;
+                    case 'empleado':
+                        if (navEmployeeProfile) navEmployeeProfile.style.display = 'block';
+                        break;
+                    case 'cliente':
+                        if (navClientLink) navClientLink.style.display = 'block';
+                        break;
+                }
+            } catch (error) {
+                console.error('Error al verificar token:', error);
+                localStorage.removeItem('token');
+            }
+        }
+
+        // Manejar cierre de sesión
+        if (logoutButton) {
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = 'index.html';
+            });
+        }
+    });
+    </script>
 
     <h1 class="contact-page-title">CONFIRMAR RESERVA</h1>
 

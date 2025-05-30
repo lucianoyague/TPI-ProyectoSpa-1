@@ -1,33 +1,62 @@
 document.getElementById("register-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const nombre = document.getElementById("nombre").value;
-    const apellido = document.getElementById("apellido").value;
-    const email = document.getElementById("email").value;
-    const telefono = document.getElementById("telefono").value;
+    // Obtener valores del formulario
+    const nombre = document.getElementById("nombre").value.trim();
+    const apellido = document.getElementById("apellido").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
     const contraseña = document.getElementById("contraseña").value;
-    const codigoInvitacion = document.getElementById("codigo-invitacion").value;
+    const confirmarContraseña = document.getElementById("confirmar-contraseña").value;
+
+    // Validaciones
+    if (contraseña !== confirmarContraseña) {
+        showToastError("Las contraseñas no coinciden");
+        return;
+    }
+
+    if (contraseña.length < 6) {
+        showToastError("La contraseña debe tener al menos 6 caracteres");
+        return;
+    }
 
     try {
-        const response = await fetch("http://localhost:3000/api/admin/register", {
+        const response = await fetch("http://localhost:3000/api/clientes/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ nombre, apellido, email, telefono, contraseña, codigoInvitacion }),
+            body: JSON.stringify({
+                nombre,
+                apellido,
+                email,
+                telefono,
+                contraseña
+            }),
         });
 
         if (response.ok) {
             const data = await response.json();
-            localStorage.setItem("token", data.token); // Guardar el token en localStorage
-            alert("Administrador registrado exitosamente.");
-            window.location.href = "admin.html"; // Redirigir al panel de administración
+            localStorage.setItem("token", data.token);
+            showToastError("Registro exitoso. Redirigiendo...");
+            setTimeout(() => {
+                window.location.href = "index.html"; // Redirige al home
+            }, 1500);
         } else {
             const errorData = await response.json();
-            alert(`Error: ${errorData.error}`);
+            showToastError(errorData.error || "Error en el registro");
         }
     } catch (error) {
         console.error("Error al registrar:", error);
-        alert("Ocurrió un error al registrar el administrador.");
+        showToastError("Error al conectar con el servidor");
     }
 });
+
+function showToastError(message) {
+    const toast = document.getElementById("toast-error");
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 3500);
+}
