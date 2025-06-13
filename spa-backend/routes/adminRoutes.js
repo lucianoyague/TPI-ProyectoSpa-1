@@ -48,7 +48,7 @@ router.post('/administradores', verifyToken, verifyAdmin, async (req, res) => {
         // Enviar correo con la contraseña temporal
         try {
             await sendInvitationCode(email, tempPassword);
-            console.log(`Correo con contraseña temporal enviado a ${email}`);
+            console.log(Correo con contraseña temporal enviado a ${email});
         } catch (emailError) {
             console.error('Error al enviar correo:', emailError);
             // Continuamos aunque falle el correo, pero registramos el error
@@ -99,7 +99,7 @@ router.post('/empleados', verifyToken, verifyAdmin, async (req, res) => {
         // Enviar correo con la contraseña temporal
         try {
             await sendInvitationCode(email, tempPassword);
-            console.log(`Correo con contraseña temporal enviado a ${email}`);
+            console.log(Correo con contraseña temporal enviado a ${email});
         } catch (emailError) {
             console.error('Error al enviar correo:', emailError);
             // Continuamos aunque falle el correo, pero registramos el error
@@ -130,6 +130,43 @@ router.get('/empleados', verifyToken, verifyAdmin, async (req, res) => {
     } catch (err) {
         console.error('Error al obtener empleados:', err);
         res.status(500).json({ error: 'Error al obtener empleados' });
+    }
+});
+router.put('/asignar-turno/:id', verifyToken, async (req, res) => {
+    const idTurno = req.params.id;
+    const { idEmpleado, idServicio } = req.body;
+
+    try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'No autorizado' });
+        }
+
+        await db.query(`
+            UPDATE turnos SET id_empleado = ?, id_servicio = ? 
+            WHERE id_turno = ?
+        `, [idEmpleado, idServicio, idTurno]);
+
+        res.json({ success: true, message: 'Turno asignado correctamente' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al asignar turno' });
+    }
+});
+router.get('/turnos-disponibles', verifyToken, async (req, res) => {
+    try {
+        if (req.user.role !== 'admin') return res.status(403).json({ error: 'No autorizado' });
+
+        const [turnos] = await db.query(`
+            SELECT t.id_turno, t.fecha, t.hora, c.nombre AS cliente
+            FROM turnos t
+            JOIN cliente c ON c.id_cliente = t.id_cliente
+            WHERE t.id_empleado IS NULL AND t.estado = 'pendiente'
+        `);
+
+        res.json(turnos);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error al obtener turnos' });
     }
 });
 
